@@ -38,7 +38,7 @@
         </div>
     {% else %}
         <p>
-            {% if perms.nutrition.add_ingredient %}
+            {% if user.is_authenticated %}
                 <a href="{% url 'nutrition:ingredient:add' %}"
                    class="btn btn-light btn-block">
                     {% translate "No ingredients." %} {% translate "Add one now." %}
@@ -129,7 +129,7 @@
 {# Options #}
 {#         #}
 {% block options %}
-    {% if perms.nutrition.add_ingredient %}
+    {% if user.is_authenticated %}
         {% translate 'Add' as text %}
         {% modal_link url='nutrition:ingredient:add' text=text %}
     {% endif %}

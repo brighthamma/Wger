@@ -239,16 +239,19 @@ class IngredientEditView(WgerFormMixin, LoginRequiredMixin, PermissionRequiredMi
         return context
 
 
-class IngredientCreateView(WgerFormMixin, PermissionRequiredMixin, CreateView):
+class IngredientCreateView(WgerFormMixin, LoginRequiredMixin, CreateView):
     """
     Generic view to add a new ingredient
+
+    Any logged-in (non-demo) user may add an ingredient. Ingredients have no
+    owner, so a new one immediately becomes part of the shared food database
+    available to all users.
     """
 
     template_name = 'form.html'
     model = Ingredient
     form_class = IngredientForm
     title = gettext_lazy('Add a new ingredient')
-    permission_required = 'nutrition.add_ingredient'
 
     def form_valid(self, form):
         form.instance.language = load_language()

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load wger_extras %}
+
+{% block title %}{% translate "Ready-made meals" %}{% endblock %}
+
+{% block content %}
+    {% if recipes %}
+        <div class="list-group">
+            {% for recipe in recipes %}
+                <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                   href="{% url 'nutrition:recipe:view' pk=recipe.pk %}">
+                    <span>
+                        <i class="fas fa-utensils me-2"></i>{{ recipe.name }}
+                    </span>
+                    <span>
+                        <span class="badge bg-secondary">
+                            {% blocktranslate count counter=recipe.portions %}{{ counter }} portion{% plural %}{{ counter }} portions{% endblocktranslate %}
+                        </span>
+                        {% if recipe.ingredient_id %}
+                            <span class="badge bg-success ms-1">{% translate "In food database" %}</span>
+                        {% endif %}
+                    </span>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted">{% translate "You haven't created any ready-made meals yet." %}</p>
+    {% endif %}
+{% endblock %}
+
+{% block options %}
+    <a href="{% url 'nutrition:recipe:add' %}" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus me-1"></i>{% translate "Add ready-made meal" %}
+    </a>
+{% endblock %}

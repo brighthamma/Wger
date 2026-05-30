@@ -42,6 +42,8 @@ from wger.nutrition.models import (
     IngredientWeightUnit,
     LogItem,
     MealItem,
+    Recipe,
+    RecipeItem,
 )
 from wger.utils.widgets import Html5NumberInput
 
@@ -368,4 +370,66 @@ class IngredientForm(forms.ModelForm):
                 Column('license_author', css_class='col-6'),
                 css_class='form-row',
             ),
+        )
+
+
+class RecipeForm(forms.ModelForm):
+    """
+    Form to create / edit a ready-made meal (recipe)
+    """
+
+    class Meta:
+        model = Recipe
+        fields = [
+            'name',
+            'code',
+            'portions',
+            'total_volume_ml',
+            'units_per_batch',
+            'is_public',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            'name',
+            Row(
+                Column('portions', css_class='col-4'),
+                Column('total_volume_ml', css_class='col-4'),
+                Column('units_per_batch', css_class='col-4'),
+                css_class='form-row',
+            ),
+            Row(
+                Column('code', css_class='col-8'),
+                Column('is_public', css_class='col-4'),
+                css_class='form-row',
+            ),
+        )
+
+
+class RecipeItemForm(forms.ModelForm):
+    """
+    Form to add an ingredient (in grams) to a recipe
+    """
+
+    ingredient = forms.ModelChoiceField(
+        queryset=Ingredient.objects.order_by('name'),
+        label=gettext_lazy('Ingredient'),
+    )
+
+    class Meta:
+        model = RecipeItem
+        fields = [
+            'ingredient',
+            'amount',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['amount'].help_text = _('Amount in grams')
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            'ingredient',
+            'amount',
         )

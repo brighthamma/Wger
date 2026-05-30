@@ -1,0 +1,11 @@
+{% extends "react/react-page.html" %}
+{% load i18n %}
+
+{% block content %}
+    <div class="mb-3">
+        <a href="{% url 'nutrition:recipe:overview' %}" class="btn btn-primary">
+            <i class="fas fa-utensils me-1"></i>{% translate "Ready-made meals" %}
+        </a>
+    </div>
+    <div id="{{ div_id }}"></div>
+{% endblock %}

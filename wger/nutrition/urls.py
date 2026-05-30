@@ -26,6 +26,7 @@ from wger.nutrition.views import (
     calculator,
     ingredient,
     plan,
+    recipe,
     unit_ingredient,
 )
 
@@ -34,7 +35,7 @@ from wger.nutrition.views import (
 patterns_plan = [
     path(
         'overview/',
-        ReactView.as_view(login_required=True),
+        recipe.NutritionOverviewReactView.as_view(login_required=True),
         name='overview',
     ),
     path(
@@ -107,6 +108,45 @@ patterns_unit_ingredient = [
     ),
 ]
 
+# sub patterns for ready-made meals (recipes)
+patterns_recipe = [
+    path(
+        'overview/',
+        recipe.RecipeOverviewView.as_view(),
+        name='overview',
+    ),
+    path(
+        'add/',
+        recipe.RecipeCreateView.as_view(),
+        name='add',
+    ),
+    path(
+        '<int:pk>/view/',
+        recipe.RecipeDetailView.as_view(),
+        name='view',
+    ),
+    path(
+        '<int:pk>/delete/',
+        recipe.RecipeDeleteView.as_view(),
+        name='delete',
+    ),
+    path(
+        '<int:pk>/materialize/',
+        recipe.recipe_materialize,
+        name='materialize',
+    ),
+    path(
+        '<int:recipe_pk>/item/add/',
+        recipe.RecipeItemCreateView.as_view(),
+        name='item-add',
+    ),
+    path(
+        '<int:recipe_pk>/item/<int:pk>/delete/',
+        recipe.recipe_item_delete,
+        name='item-delete',
+    ),
+]
+
 # sub patterns for BMI calculator
 patterns_bmi = [
     path(
@@ -155,6 +195,13 @@ urlpatterns = [
         include(
             (patterns_unit_ingredient, 'unit_ingredient'),
             namespace='unit_ingredient',
+        ),
+    ),
+    path(
+        'recipe/',
+        include(
+            (patterns_recipe, 'recipe'),
+            namespace='recipe',
         ),
     ),
     path(

@@ -59,13 +59,23 @@ RUN pip3 wheel \
 # is hacky and there's probably a better way.
 COPY package.json package-lock.json ./
 COPY wger/core/static /root/src/wger/core/static
+# Optional drop-in for a custom-built frontend (see frontend/README.md). If a
+# react-components tarball is present there it is used instead of the npm one.
+COPY frontend/ /root/src/frontend/
 RUN npm ci --production \
     && npm run build:css:sass \
     && PACKAGE_NAME="@wger-project/react-components" \
-    && PACKAGE_VERSION=$(node -p "require('./package.json').devDependencies['$PACKAGE_NAME']") \
-    && TARBALL=$(npm pack ${PACKAGE_NAME}@${PACKAGE_VERSION}) \
+    && LOCAL_TGZ="$(ls /root/src/frontend/*.tgz 2>/dev/null | head -n1 || true)" \
+    && if [ -n "$LOCAL_TGZ" ]; then \
+         echo "Using local frontend build: $LOCAL_TGZ"; \
+         TARBALL="$LOCAL_TGZ"; \
+       else \
+         echo "Using published $PACKAGE_NAME from npm"; \
+         PACKAGE_VERSION=$(node -p "require('./package.json').devDependencies['$PACKAGE_NAME']"); \
+         TARBALL=$(npm pack ${PACKAGE_NAME}@${PACKAGE_VERSION}); \
+       fi \
     && mkdir -p node_modules/${PACKAGE_NAME} \
-    && tar -xzf ${TARBALL} -C node_modules/${PACKAGE_NAME} --strip-components=1
+    && tar -xzf "${TARBALL}" -C node_modules/${PACKAGE_NAME} --strip-components=1
 
 ########
 # Final

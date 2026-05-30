@@ -93,3 +93,6 @@ venv-wger
 
 # macOS
 .DS_Store
+
+# Custom frontend build artifact
+frontend/*.tgz

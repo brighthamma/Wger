@@ -33,6 +33,8 @@ from wger.nutrition.models import (
     Meal,
     MealItem,
     NutritionPlan,
+    Recipe,
+    RecipeItem,
 )
 
 
@@ -328,6 +330,112 @@ class MealInfoSerializer(serializers.ModelSerializer):
             'name',
             'meal_items',
             'nutritional_values',
+        )
+
+
+class RecipeItemSerializer(serializers.ModelSerializer):
+    """
+    RecipeItem serializer
+    """
+
+    recipe = serializers.PrimaryKeyRelatedField(queryset=Recipe.objects.all())
+
+    class Meta:
+        model = RecipeItem
+        fields = (
+            'id',
+            'recipe',
+            'ingredient',
+            'weight_unit',
+            'order',
+            'amount',
+        )
+
+
+class RecipeItemInfoSerializer(serializers.ModelSerializer):
+    """
+    RecipeItem info serializer (with nested ingredient data)
+    """
+
+    recipe = serializers.PrimaryKeyRelatedField(read_only=True)
+    ingredient_obj = IngredientInfoSerializer(source='ingredient', read_only=True)
+    weight_unit_obj = IngredientWeightUnitSerializer(source='weight_unit', read_only=True)
+    nutritional_values = NutritionalValuesSerializer(
+        source='get_nutritional_values',
+        read_only=True,
+    )
+
+    class Meta:
+        model = RecipeItem
+        fields = (
+            'id',
+            'recipe',
+            'ingredient',
+            'ingredient_obj',
+            'weight_unit',
+            'weight_unit_obj',
+            'order',
+            'amount',
+            'nutritional_values',
+        )
+
+
+class RecipeSerializer(serializers.ModelSerializer):
+    """
+    Recipe serializer (read/write)
+    """
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'uuid',
+            'language',
+            'is_public',
+            'name',
+            'code',
+            'portions',
+            'total_volume_ml',
+            'units_per_batch',
+            'created',
+            'last_update',
+        )
+        read_only_fields = ('uuid', 'created', 'last_update')
+
+
+class RecipeInfoSerializer(serializers.ModelSerializer):
+    """
+    Recipe info serializer, with items and computed portioning values
+    """
+
+    items = RecipeItemInfoSerializer(source='recipeitem_set', many=True, read_only=True)
+    nutritional_values = NutritionalValuesSerializer(
+        source='get_nutritional_values',
+        read_only=True,
+    )
+    nutritional_values_per_100g = NutritionalValuesSerializer(read_only=True)
+    nutritional_values_per_portion = NutritionalValuesSerializer(read_only=True)
+    total_weight = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'uuid',
+            'language',
+            'is_public',
+            'name',
+            'code',
+            'portions',
+            'total_volume_ml',
+            'units_per_batch',
+            'created',
+            'last_update',
+            'total_weight',
+            'items',
+            'nutritional_values',
+            'nutritional_values_per_100g',
+            'nutritional_values_per_portion',
         )
 
 

@@ -42,3 +42,24 @@ Simple approximation of energy (kcal) provided per gram or ounce
 KJ_PER_KCAL = 4.184
 
 OFF_FULL_DUMP_URL = 'https://static.openfoodfacts.org/data/openfoodfacts-products.jsonl.gz'
+
+#
+# Recipe (ready-made / composite meal) portioning
+#
+RECIPE_UNIT_GRAM = 'g'
+RECIPE_UNIT_MILLILITER = 'ml'
+RECIPE_UNIT_UNIT = 'unit'
+RECIPE_UNIT_PORTION = 'portion'
+
+RECIPE_UNIT_CHOICES = [
+    (RECIPE_UNIT_GRAM, 'Grams'),
+    (RECIPE_UNIT_MILLILITER, 'Milliliters'),
+    (RECIPE_UNIT_UNIT, 'Units'),
+    (RECIPE_UNIT_PORTION, 'Portions'),
+]
+"""
+The units a finished recipe can be divided/logged by.
+
+Grams is always available (it is the base weight). Milliliters need a recipe
+``total_volume_ml``, units need ``units_per_batch`` and portions use ``portions``.
+"""

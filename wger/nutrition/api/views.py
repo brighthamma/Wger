@@ -20,6 +20,7 @@ import logging
 
 # Django
 from django.conf import settings
+from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 
@@ -44,6 +45,13 @@ from wger.nutrition.api.serializers import (
     NutritionalValuesSerializer,
     NutritionPlanInfoSerializer,
     NutritionPlanSerializer,
+    RecipeInfoSerializer,
+    RecipeItemSerializer,
+    RecipeSerializer,
+)
+from wger.nutrition.consts import (
+    RECIPE_UNIT_CHOICES,
+    RECIPE_UNIT_GRAM,
 )
 from wger.nutrition.forms import UnitChooserForm
 from wger.nutrition.models import (
@@ -54,6 +62,8 @@ from wger.nutrition.models import (
     Meal,
     MealItem,
     NutritionPlan,
+    Recipe,
+    RecipeItem,
 )
 from wger.utils.pagination import IngredientCursorPagination
 from wger.utils.viewsets import WgerOwnerObjectModelViewSet
@@ -351,6 +361,127 @@ class MealItemViewSet(WgerOwnerObjectModelViewSet):
         """
         Return an overview of the nutritional plan's values
         """
+        serializer = NutritionalValuesSerializer(self.get_object().get_nutritional_values())
+        return Response(serializer.data)
+
+
+class RecipeViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for ready-made / composite meal (recipe) objects.
+
+    A user sees their own recipes plus any public ones, but can only modify
+    their own.
+    """
+
+    serializer_class = RecipeSerializer
+    is_private = True
+    ordering_fields = '__all__'
+    filterset_fields = (
+        'name',
+        'code',
+        'is_public',
+        'language',
+    )
+
+    def get_queryset(self):
+        # REST API generation
+        if getattr(self, 'swagger_fake_view', False):
+            return Recipe.objects.none()
+
+        # Reading: own recipes + public ones. Writing: own recipes only.
+        if self.request.method in ('GET', 'HEAD', 'OPTIONS'):
+            return Recipe.objects.filter(Q(user=self.request.user) | Q(is_public=True))
+        return Recipe.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @action(detail=True)
+    def nutritional_values(self, request, pk):
+        """
+        Nutritional values for the whole recipe
+        """
+        serializer = NutritionalValuesSerializer(self.get_object().get_nutritional_values())
+        return Response(serializer.data)
+
+    @action(detail=True)
+    def values_for(self, request, pk):
+        """
+        Nutritional values for a given amount of the recipe in a given unit.
+
+        Query parameters:
+        - ``amount``: how many grams / ml / units / portions (default 1)
+        - ``unit``: one of ``g``, ``ml``, ``unit``, ``portion`` (default ``g``)
+        """
+        valid_units = [choice[0] for choice in RECIPE_UNIT_CHOICES]
+        unit = request.GET.get('unit', RECIPE_UNIT_GRAM)
+        if unit not in valid_units:
+            return Response({'errors': {'unit': f'must be one of {valid_units}'}}, status=400)
+
+        try:
+            amount = float(request.GET.get('amount', 1))
+        except (TypeError, ValueError):
+            return Response({'errors': {'amount': 'must be a number'}}, status=400)
+
+        values = self.get_object().nutritional_values_for(amount, unit)
+        return Response(NutritionalValuesSerializer(values).data)
+
+    @action(detail=True, methods=['post'])
+    def materialize(self, request, pk):
+        """
+        Create or refresh the linked food-database ingredient for this recipe,
+        so it can be searched, scanned and logged like a normal product.
+        """
+        recipe = self.get_object()
+        ingredient = recipe.sync_to_ingredient()
+        if ingredient is None:
+            return Response(
+                {'errors': 'Recipe has no items / no weight, nothing to materialize'},
+                status=400,
+            )
+        return Response({'ingredient': ingredient.pk})
+
+
+class RecipeInfoViewSet(RecipeViewSet):
+    """
+    Read-only-friendly info endpoint for recipes: returns nested items and the
+    computed portioning values.
+    """
+
+    serializer_class = RecipeInfoSerializer
+
+
+class RecipeItemViewSet(WgerOwnerObjectModelViewSet):
+    """
+    API endpoint for recipe item objects
+    """
+
+    serializer_class = RecipeItemSerializer
+    is_private = True
+    ordering_fields = '__all__'
+    filterset_fields = (
+        'amount',
+        'ingredient',
+        'recipe',
+        'order',
+        'weight_unit',
+    )
+
+    def get_queryset(self):
+        # REST API generation
+        if getattr(self, 'swagger_fake_view', False):
+            return RecipeItem.objects.none()
+
+        return RecipeItem.objects.filter(recipe__user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(order=1)
+
+    def get_owner_objects(self):
+        return [(Recipe, 'recipe')]
+
+    @action(detail=True)
+    def nutritional_values(self, request, pk):
         serializer = NutritionalValuesSerializer(self.get_object().get_nutritional_values())
         return Response(serializer.data)
 

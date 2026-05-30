@@ -130,6 +130,32 @@ class NutritionalValues:
             else self.sodium or other.sodium,
         )
 
+    def __mul__(self, factor: Union[Decimal, int, float]):
+        """
+        Allow scaling nutritional values by a factor
+
+        Used to portion composite foods (recipes) by grams, ml, units or
+        portions. Optional values stay ``None`` so they are not turned into a
+        misleading ``0``.
+        """
+        factor = Decimal(str(factor))
+
+        def scale(value):
+            return value * factor if value is not None else None
+
+        return NutritionalValues(
+            energy=self.energy * factor,
+            protein=self.protein * factor,
+            carbohydrates=self.carbohydrates * factor,
+            carbohydrates_sugar=scale(self.carbohydrates_sugar),
+            fat=self.fat * factor,
+            fat_saturated=scale(self.fat_saturated),
+            fiber=scale(self.fiber),
+            sodium=scale(self.sodium),
+        )
+
+    __rmul__ = __mul__
+
     @property
     def to_dict(self):
         return asdict(self)

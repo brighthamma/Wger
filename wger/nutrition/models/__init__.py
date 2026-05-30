@@ -23,4 +23,6 @@ from .log import LogItem
 from .meal import Meal
 from .meal_item import MealItem
 from .plan import NutritionPlan
+from .recipe import Recipe
+from .recipe_item import RecipeItem
 from .sources import Source

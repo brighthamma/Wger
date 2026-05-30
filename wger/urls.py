@@ -228,6 +228,9 @@ router.register(
 router.register(r'nutritiondiary', nutrition_api_views.LogItemViewSet, basename='nutritiondiary')
 router.register(r'meal', nutrition_api_views.MealViewSet, basename='meal')
 router.register(r'mealitem', nutrition_api_views.MealItemViewSet, basename='mealitem')
+router.register(r'recipe', nutrition_api_views.RecipeViewSet, basename='recipe')
+router.register(r'recipeinfo', nutrition_api_views.RecipeInfoViewSet, basename='recipeinfo')
+router.register(r'recipeitem', nutrition_api_views.RecipeItemViewSet, basename='recipeitem')
 router.register(r'ingredient-image', nutrition_api_views.ImageViewSet, basename='ingredientimage')
 
 # Weight app

@@ -157,7 +157,9 @@ def recipe_materialize(request, pk):
     if ingredient is None:
         messages.warning(
             request,
-            gettext_lazy('Add at least one ingredient before adding the meal to the food database.'),
+            gettext_lazy(
+                'Add at least one ingredient before adding the meal to the food database.'
+            ),
         )
     else:
         messages.success(

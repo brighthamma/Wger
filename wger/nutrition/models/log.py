@@ -104,9 +104,7 @@ class LogItem(BaseMealItem, models.Model):
     """Optional label for a custom entry (no ingredient)"""
 
     custom_energy = models.IntegerField(verbose_name='Energy', null=True, blank=True)
-    custom_protein = models.DecimalField(
-        decimal_places=3, max_digits=7, null=True, blank=True
-    )
+    custom_protein = models.DecimalField(decimal_places=3, max_digits=7, null=True, blank=True)
     custom_carbohydrates = models.DecimalField(
         decimal_places=3, max_digits=7, null=True, blank=True
     )

@@ -115,6 +115,7 @@ RUN --mount=type=bind,from=builder,source=/wheels,target=/wheels \
     pip3 install --break-system-packages --no-cache-dir --user /wheels/* \
     && pip3 install --break-system-packages --user . \
     && mkdir -p ~/media ~/static ~/beat ~/db \
+    && chmod -R u+w /home/wger/src/wger/locale \
     && cd wger \
     && django-admin compilemessages
 

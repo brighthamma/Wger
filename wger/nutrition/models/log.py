@@ -26,7 +26,10 @@ from django.db import models
 from django.utils import timezone
 
 # wger
-from wger.nutrition.helpers import BaseMealItem
+from wger.nutrition.helpers import (
+    BaseMealItem,
+    NutritionalValues,
+)
 
 # Local
 from .ingredient import Ingredient
@@ -85,10 +88,30 @@ class LogItem(BaseMealItem, models.Model):
         Ingredient,
         verbose_name='Ingredient',
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
     )
     """
-    Ingredient
+    Ingredient (empty for custom entries with manually entered values)
     """
+
+    custom_name = models.CharField(
+        max_length=200,
+        verbose_name='Custom name',
+        null=True,
+        blank=True,
+    )
+    """Optional label for a custom entry (no ingredient)"""
+
+    custom_energy = models.IntegerField(verbose_name='Energy', null=True, blank=True)
+    custom_protein = models.DecimalField(
+        decimal_places=3, max_digits=7, null=True, blank=True
+    )
+    custom_carbohydrates = models.DecimalField(
+        decimal_places=3, max_digits=7, null=True, blank=True
+    )
+    custom_fat = models.DecimalField(decimal_places=3, max_digits=7, null=True, blank=True)
+    """Manually entered nutritional values for a custom entry (totals, not per 100g)"""
 
     weight_unit = models.ForeignKey(
         IngredientWeightUnit,
@@ -105,11 +128,32 @@ class LogItem(BaseMealItem, models.Model):
         decimal_places=2,
         max_digits=6,
         verbose_name='Amount',
+        null=True,
+        blank=True,
         validators=[MinValueValidator(Decimal(1)), MaxValueValidator(Decimal(1000))],
     )
     """
-    The amount of units
+    The amount of units (not used for custom entries)
     """
+
+    @property
+    def is_custom(self):
+        """A custom entry has manually entered values and no ingredient"""
+        return self.ingredient_id is None
+
+    def get_nutritional_values(self, use_metric=True) -> NutritionalValues:
+        """
+        For custom entries the stored values are the totals for the entry;
+        otherwise fall back to the ingredient-based calculation.
+        """
+        if self.is_custom:
+            return NutritionalValues(
+                energy=self.custom_energy or 0,
+                protein=self.custom_protein or 0,
+                carbohydrates=self.custom_carbohydrates or 0,
+                fat=self.custom_fat or 0,
+            )
+        return super().get_nutritional_values(use_metric=use_metric)
 
     def __str__(self):
         """

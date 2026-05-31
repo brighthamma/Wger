@@ -247,6 +247,11 @@ class LogItemSerializer(serializers.ModelSerializer):
             'weight_unit',
             'datetime',
             'amount',
+            'custom_name',
+            'custom_energy',
+            'custom_protein',
+            'custom_carbohydrates',
+            'custom_fat',
         )
 
 

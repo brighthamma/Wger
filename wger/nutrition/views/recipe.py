@@ -33,7 +33,6 @@ from django.views.generic import (
 )
 
 # wger
-from wger.core.views.react import ReactView
 from wger.nutrition.forms import (
     RecipeForm,
     RecipeItemForm,
@@ -50,15 +49,6 @@ from wger.utils.language import load_language
 
 
 logger = logging.getLogger(__name__)
-
-
-class NutritionOverviewReactView(ReactView):
-    """
-    The nutrition plan overview (React), with an extra button linking to the
-    ready-made meals (recipes) overview.
-    """
-
-    template_name = 'react/nutrition-overview.html'
 
 
 class RecipeOverviewView(LoginRequiredMixin, ListView):

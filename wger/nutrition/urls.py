@@ -35,7 +35,7 @@ from wger.nutrition.views import (
 patterns_plan = [
     path(
         'overview/',
-        recipe.NutritionOverviewReactView.as_view(login_required=True),
+        ReactView.as_view(login_required=True),
         name='overview',
     ),
     path(
